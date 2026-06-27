@@ -89,37 +89,58 @@ jobs:
           print("Manifest updated.")
           EOF
 
-      - name: Patch NDK version in build.gradle.kts
+      - name: Install NDK 27
+        run: echo "y" | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager "ndk;27.0.12077973"
+
+      - name: Patch build.gradle.kts (NDK + desugaring)
         run: |
           python3 - <<'EOF'
           import re, os
 
-          # Flutter 3.19+ uses build.gradle.kts
-          bg = "temp_project/android/app/build.gradle.kts"
-          if os.path.exists(bg):
-              c = open(bg).read()
-              # Add ndkVersion inside android { } block if not present
-              if 'ndkVersion' not in c:
-                  c = re.sub(
-                      r'(android\s*\{)',
-                      r'\1\n    ndkVersion = "27.0.12077973"',
-                      c, count=1
-                  )
-              open(bg, "w").write(c)
-              print("build.gradle.kts patched with ndkVersion")
+          for path in ["temp_project/android/app/build.gradle.kts",
+                       "temp_project/android/app/build.gradle"]:
+              if not os.path.exists(path):
+                  continue
+              c = open(path).read()
+              is_kts = path.endswith(".kts")
 
-          # Older style build.gradle
-          bg2 = "temp_project/android/app/build.gradle"
-          if os.path.exists(bg2):
-              c = open(bg2).read()
-              if 'ndkVersion' not in c:
-                  c = re.sub(
-                      r'(android\s*\{)',
-                      r'\1\n    ndkVersion "27.0.12077973"',
-                      c, count=1
-                  )
-              open(bg2, "w").write(c)
-              print("build.gradle patched with ndkVersion")
+              # Replace flutter.ndkVersion with pinned version
+              if is_kts:
+                  c = re.sub(r'ndkVersion\s*=\s*flutter\.ndkVersion',
+                             'ndkVersion = "27.0.12077973"', c)
+                  if 'ndkVersion' not in c:
+                      c = re.sub(r'(android\s*\{)',
+                                 r'\1\n    ndkVersion = "27.0.12077973"', c, 1)
+              else:
+                  c = re.sub(r'ndkVersion\s+flutter\.ndkVersion',
+                             'ndkVersion "27.0.12077973"', c)
+                  if 'ndkVersion' not in c:
+                      c = re.sub(r'(android\s*\{)',
+                                 r'\1\n    ndkVersion "27.0.12077973"', c, 1)
+
+              # Enable core library desugaring
+              if is_kts:
+                  if 'isCoreLibraryDesugaringEnabled' not in c:
+                      c = re.sub(r'(compileOptions\s*\{)',
+                                 r'\1\n        isCoreLibraryDesugaringEnabled = true', c)
+                      if 'compileOptions' not in c:
+                          c = re.sub(r'(android\s*\{)',
+                                     r'\1\n    compileOptions {\n        isCoreLibraryDesugaringEnabled = true\n    }', c, 1)
+                  if 'coreLibraryDesugaring' not in c:
+                      c = re.sub(r'(dependencies\s*\{)',
+                                 r'\1\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")', c)
+                      if 'dependencies' not in c:
+                          c += '\ndependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")\n}\n'
+              else:
+                  if 'coreLibraryDesugaringEnabled' not in c:
+                      c = re.sub(r'(compileOptions\s*\{)',
+                                 r'\1\n        coreLibraryDesugaringEnabled true', c)
+                  if 'coreLibraryDesugaring' not in c:
+                      c = re.sub(r'(dependencies\s*\{)',
+                                 r'\1\n    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"', c)
+
+              open(path, "w").write(c)
+              print(f"Patched {path}")
           EOF
 
       - name: Install dependencies
