@@ -89,6 +89,39 @@ jobs:
           print("Manifest updated.")
           EOF
 
+      - name: Patch NDK version in build.gradle.kts
+        run: |
+          python3 - <<'EOF'
+          import re, os
+
+          # Flutter 3.19+ uses build.gradle.kts
+          bg = "temp_project/android/app/build.gradle.kts"
+          if os.path.exists(bg):
+              c = open(bg).read()
+              # Add ndkVersion inside android { } block if not present
+              if 'ndkVersion' not in c:
+                  c = re.sub(
+                      r'(android\s*\{)',
+                      r'\1\n    ndkVersion = "27.0.12077973"',
+                      c, count=1
+                  )
+              open(bg, "w").write(c)
+              print("build.gradle.kts patched with ndkVersion")
+
+          # Older style build.gradle
+          bg2 = "temp_project/android/app/build.gradle"
+          if os.path.exists(bg2):
+              c = open(bg2).read()
+              if 'ndkVersion' not in c:
+                  c = re.sub(
+                      r'(android\s*\{)',
+                      r'\1\n    ndkVersion "27.0.12077973"',
+                      c, count=1
+                  )
+              open(bg2, "w").write(c)
+              print("build.gradle patched with ndkVersion")
+          EOF
+
       - name: Install dependencies
         run: cd temp_project && flutter pub get
 

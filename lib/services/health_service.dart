@@ -11,16 +11,16 @@ class HealthService {
     HealthDataType.ACTIVE_ENERGY_BURNED,
     HealthDataType.SLEEP_ASLEEP,
     HealthDataType.WEIGHT,
-    HealthDataType.HRV_SDNN,
+    HealthDataType.HEART_RATE_VARIABILITY_SDNN,
   ];
 
   static const _typeToKey = {
-    HealthDataType.STEPS:                'steps',
-    HealthDataType.HEART_RATE:           'heart_rate',
-    HealthDataType.ACTIVE_ENERGY_BURNED: 'active_calories',
-    HealthDataType.SLEEP_ASLEEP:         'sleep',
-    HealthDataType.WEIGHT:               'weight',
-    HealthDataType.HRV_SDNN:             'hrv',
+    HealthDataType.STEPS:                        'steps',
+    HealthDataType.HEART_RATE:                   'heart_rate',
+    HealthDataType.ACTIVE_ENERGY_BURNED:         'active_calories',
+    HealthDataType.SLEEP_ASLEEP:                 'sleep',
+    HealthDataType.WEIGHT:                       'weight',
+    HealthDataType.HEART_RATE_VARIABILITY_SDNN:  'hrv',
   };
 
   /// Request Health Connect permissions. Returns true if granted.
