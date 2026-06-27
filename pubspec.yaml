@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   health: ^12.0.0               # HealthKit + Health Connect unified API
-  workmanager: ^0.5.2           # Android WorkManager background tasks
+  workmanager: ^0.6.0           # Android WorkManager background tasks
   http: ^1.2.0                  # HTTP client for backend POST
   shared_preferences: ^2.3.0    # Store user LINE ID
   permission_handler: ^11.3.0   # Runtime permission requests
