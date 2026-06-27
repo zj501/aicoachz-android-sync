@@ -23,17 +23,19 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Scaffold Flutter project
+        run: |
+          flutter create --project-name sculinebot_sync --org com.aicoachz temp_project
+          cp -f pubspec.yaml temp_project/pubspec.yaml
+          cp -rf lib/* temp_project/lib/
+          cp -f android/app/src/main/AndroidManifest.xml \
+                temp_project/android/app/src/main/AndroidManifest.xml
+
       - name: Install dependencies
-        run: flutter pub get
+        run: cd temp_project && flutter pub get
 
       - name: Build release APK
-        run: flutter build apk --release
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: sculinebot-sync-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+        run: cd temp_project && flutter build apk --release
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -46,6 +48,6 @@ jobs:
             **安裝步驟：**
             1. 下載 `app-release.apk`
             2. 手機允許「從未知來源安裝」
-            3. 安裝後輸入你的 LINE User ID 即可使用
-          files: build/app/outputs/flutter-apk/app-release.apk
+            3. 安裝後輸入你的 LINE User ID 及後端網址即可使用
+          files: temp_project/build/app/outputs/flutter-apk/app-release.apk
           token: ${{ secrets.GITHUB_TOKEN }}
