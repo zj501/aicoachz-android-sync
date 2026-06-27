@@ -19,7 +19,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: '3.29.0'
           channel: stable
           cache: true
 
@@ -28,6 +28,33 @@ jobs:
           flutter create --project-name sculinebot_sync --org com.aicoachz temp_project
           cp -f pubspec.yaml temp_project/pubspec.yaml
           cp -rf lib/* temp_project/lib/
+
+      - name: Upgrade Kotlin to 2.0.21
+        run: |
+          python3 - <<'EOF'
+          import re, os
+
+          # settings.gradle (Flutter 3.19+ plugin-style)
+          sg = "temp_project/android/settings.gradle"
+          if os.path.exists(sg):
+              c = open(sg).read()
+              c = re.sub(
+                  r'id\s+"org\.jetbrains\.kotlin\.android"\s+version\s+"[^"]+"',
+                  'id "org.jetbrains.kotlin.android" version "2.0.21"',
+                  c
+              )
+              open(sg, "w").write(c)
+              print("settings.gradle updated")
+
+          # build.gradle (older style)
+          bg = "temp_project/android/build.gradle"
+          if os.path.exists(bg):
+              c = open(bg).read()
+              c = re.sub(r"ext\.kotlin_version\s*=\s*'[^']+'", "ext.kotlin_version = '2.0.21'", c)
+              c = re.sub(r'ext\.kotlin_version\s*=\s*"[^"]+"', 'ext.kotlin_version = "2.0.21"', c)
+              open(bg, "w").write(c)
+              print("build.gradle updated")
+          EOF
 
       - name: Inject Health Connect permissions into manifest
         run: |
@@ -56,11 +83,8 @@ jobs:
               </queries>
           """
 
-          # Insert permissions after <manifest ...>
           content = re.sub(r'(<manifest[^>]*>)', r'\1' + permissions, content, count=1)
-          # Insert queries before </manifest>
           content = content.replace('</manifest>', queries + '</manifest>')
-
           open(path, 'w').write(content)
           print("Manifest updated.")
           EOF
