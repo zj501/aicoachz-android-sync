@@ -111,12 +111,22 @@ jobs:
                   if 'ndkVersion' not in c:
                       c = re.sub(r'(android\s*\{)',
                                  r'\1\n    ndkVersion = "27.0.12077973"', c, 1)
+                  # Bump minSdk to 26
+                  c = re.sub(r'minSdk\s*=\s*flutter\.minSdkVersion',
+                             'minSdk = 26', c)
+                  c = re.sub(r'minSdk\s*=\s*\d+',
+                             'minSdk = 26', c)
               else:
                   c = re.sub(r'ndkVersion\s+flutter\.ndkVersion',
                              'ndkVersion "27.0.12077973"', c)
                   if 'ndkVersion' not in c:
                       c = re.sub(r'(android\s*\{)',
                                  r'\1\n    ndkVersion "27.0.12077973"', c, 1)
+                  # Bump minSdkVersion to 26
+                  c = re.sub(r'minSdkVersion\s+flutter\.minSdkVersion',
+                             'minSdkVersion 26', c)
+                  c = re.sub(r'minSdkVersion\s+\d+',
+                             'minSdkVersion 26', c)
 
               # Enable core library desugaring
               if is_kts:
